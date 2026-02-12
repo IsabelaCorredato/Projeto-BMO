@@ -2,6 +2,8 @@
 
 Assistente interativo inspirado no BMO (*Adventure Time*), utilizando **ESP32**, **Fire TV** e **IA generativa (Gemini API)** para criar um dispositivo físico capaz de capturar voz, processar comandos e responder por áudio e interface visual.
 
+Link do TLDRAW: https://www.tldraw.com/f/NGLiQ-fu3osM4DSTW2_Nz?d=v-230.-373.2552.1491.page
+
 ---
 
 # Arquitetura do Sistema
