@@ -86,22 +86,19 @@ class BmoController extends ChangeNotifier {
     required String apiToken,
   }) async {
     _errorText = null;
-    _wsUrl = wsUrl.trim();
-    _apiBaseUrl = apiBaseUrl.trim();
+    _wsUrl = '';
+    _apiBaseUrl = '';
     _apiToken = apiToken.trim();
 
-    if (_wsUrl.isEmpty && _apiBaseUrl.isNotEmpty) {
-      try {
-        _wsUrl = _deriveWsUrlFromApi(_apiBaseUrl);
-      } catch (_) {
-        _errorText = 'Node API base URL inválida.';
-        notifyListeners();
-        return;
-      }
-    }
-
-    if (_wsUrl.isEmpty) {
-      _errorText = 'Informe Node WS URL ou Node API base URL.';
+    try {
+      final normalized = _normalizeNodeEndpoints(
+        wsUrl: wsUrl,
+        apiBaseUrl: apiBaseUrl,
+      );
+      _wsUrl = normalized.wsUrl;
+      _apiBaseUrl = normalized.apiBaseUrl;
+    } catch (error) {
+      _errorText = 'URL inválida: $error';
       notifyListeners();
       return;
     }
@@ -126,15 +123,141 @@ class BmoController extends ChangeNotifier {
     }
   }
 
+  _NormalizedNodeEndpoints _normalizeNodeEndpoints({
+    required String wsUrl,
+    required String apiBaseUrl,
+  }) {
+    final normalizedApi = _normalizeApiBaseUrl(apiBaseUrl);
+    final normalizedWs = _normalizeWsUrl(
+      wsUrl: wsUrl,
+      fallbackApiBaseUrl: normalizedApi,
+    );
+
+    if (normalizedWs.isEmpty) {
+      throw ArgumentError('Informe Node WS URL ou Node API base URL');
+    }
+
+    return _NormalizedNodeEndpoints(
+      wsUrl: normalizedWs,
+      apiBaseUrl: normalizedApi,
+    );
+  }
+
+  String _normalizeApiBaseUrl(String rawApiBaseUrl) {
+    final trimmed = rawApiBaseUrl.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+
+    final uri = _parseFlexibleUri(trimmed, defaultScheme: 'https');
+    if (uri.host.isEmpty) {
+      throw ArgumentError('Node API base URL sem host');
+    }
+
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme != 'http' && scheme != 'https') {
+      throw ArgumentError('Node API base URL deve usar http:// ou https://');
+    }
+
+    var path = uri.path == '/' ? '' : uri.path.replaceAll(RegExp(r'/+$'), '');
+    if (path.toLowerCase().endsWith('/messages')) {
+      path = path.substring(0, path.length - '/messages'.length);
+    }
+    return _buildUriString(
+      scheme: scheme,
+      host: uri.host,
+      port: _validPortOrNull(uri),
+      path: path,
+    );
+  }
+
+  String _normalizeWsUrl({
+    required String wsUrl,
+    required String fallbackApiBaseUrl,
+  }) {
+    final trimmed = wsUrl.trim();
+    if (trimmed.isEmpty) {
+      if (fallbackApiBaseUrl.isEmpty) {
+        return '';
+      }
+      return _deriveWsUrlFromApi(fallbackApiBaseUrl);
+    }
+
+    final uri = _parseFlexibleUri(trimmed, defaultScheme: 'wss');
+    if (uri.host.isEmpty) {
+      throw ArgumentError('Node WS URL sem host');
+    }
+
+    var scheme = uri.scheme.toLowerCase();
+    if (scheme == 'http') {
+      scheme = 'ws';
+    } else if (scheme == 'https') {
+      scheme = 'wss';
+    }
+
+    if (scheme != 'ws' && scheme != 'wss') {
+      throw ArgumentError('Node WS URL deve usar ws:// ou wss://');
+    }
+
+    final currentPath = uri.path.trim();
+    final normalizedPath = currentPath.isEmpty || currentPath == '/'
+        ? '/ws'
+        : currentPath;
+
+    return _buildUriString(
+      scheme: scheme,
+      host: uri.host,
+      port: _validPortOrNull(uri),
+      path: normalizedPath,
+    );
+  }
+
   String _deriveWsUrlFromApi(String apiBaseUrl) {
     final uri = Uri.parse(apiBaseUrl);
     final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
-    return Uri(
+    return _buildUriString(
       scheme: wsScheme,
       host: uri.host,
-      port: uri.hasPort ? uri.port : null,
+      port: _validPortOrNull(uri),
       path: '/ws',
-    ).toString();
+    );
+  }
+
+  Uri _parseFlexibleUri(String raw, {required String defaultScheme}) {
+    final hasScheme = RegExp(r'^[a-zA-Z][a-zA-Z0-9+.-]*://').hasMatch(raw);
+    final candidate = hasScheme ? raw : '$defaultScheme://$raw';
+    final uri = Uri.tryParse(candidate);
+    if (uri == null) {
+      throw ArgumentError('Formato de URL inválido');
+    }
+    return uri.replace(query: null, fragment: null);
+  }
+
+  int? _validPortOrNull(Uri uri) {
+    if (!uri.hasPort) {
+      return null;
+    }
+
+    final port = uri.port;
+    if (port <= 0 || port > 65535) {
+      return null;
+    }
+    return port;
+  }
+
+  String _buildUriString({
+    required String scheme,
+    required String host,
+    required String path,
+    int? port,
+  }) {
+    final normalizedPath = path.isEmpty || path.startsWith('/')
+        ? path
+        : '/$path';
+    final uri = port == null
+        ? Uri(scheme: scheme, host: host, path: normalizedPath)
+        : Uri(scheme: scheme, host: host, port: port, path: normalizedPath);
+    return uri.toString();
   }
 
   Future<void> disconnectFromNode() async {
@@ -343,4 +466,14 @@ class BmoController extends ChangeNotifier {
     unawaited(_database.close());
     super.dispose();
   }
+}
+
+class _NormalizedNodeEndpoints {
+  const _NormalizedNodeEndpoints({
+    required this.wsUrl,
+    required this.apiBaseUrl,
+  });
+
+  final String wsUrl;
+  final String apiBaseUrl;
 }

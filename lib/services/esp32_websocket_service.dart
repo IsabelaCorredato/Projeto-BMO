@@ -47,6 +47,7 @@ class Esp32WebSocketService {
 
     try {
       _channel = WebSocketChannel.connect(uri);
+      await _channel!.ready;
       _subscription = _channel!.stream.listen(
         (event) {
           _setStatus(WsStatus.connected);

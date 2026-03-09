@@ -131,6 +131,12 @@ class _BmoHomePageState extends State<BmoHomePage> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        final hasError = _controller.errorText != null;
+        final headerItems = 1 + (hasError ? 1 : 0);
+        final thinkingItems = _controller.isGenerating ? 1 : 0;
+        final totalItems =
+            headerItems + _controller.messages.length + thinkingItems;
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('BMO Bridge'),
@@ -146,45 +152,66 @@ class _BmoHomePageState extends State<BmoHomePage> {
           ),
           body: Column(
             children: [
-              _buildConnectionPanel(),
-              if (_controller.errorText != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _controller.errorText!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _controller.messages.length,
+                  padding: const EdgeInsets.only(bottom: 12),
+                  itemCount: totalItems,
                   itemBuilder: (context, index) {
-                    final message = _controller.messages[index];
-                    return _MessageBubble(message: message);
+                    if (index == 0) {
+                      return _buildConnectionPanel();
+                    }
+
+                    var offset = 1;
+
+                    if (hasError) {
+                      if (index == offset) {
+                        return _buildErrorBanner(
+                          context,
+                          _controller.errorText!,
+                        );
+                      }
+                      offset++;
+                    }
+
+                    final messageIndex = index - offset;
+                    if (messageIndex >= 0 &&
+                        messageIndex < _controller.messages.length) {
+                      final message = _controller.messages[messageIndex];
+                      return _MessageBubble(message: message);
+                    }
+
+                    return const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('BMO está pensando...'),
+                      ),
+                    );
                   },
                 ),
               ),
-              if (_controller.isGenerating)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Text('BMO está pensando...'),
-                ),
-              _buildComposer(),
             ],
           ),
+          bottomNavigationBar: _buildComposer(),
         );
       },
+    );
+  }
+
+  Widget _buildErrorBanner(BuildContext context, String errorText) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          errorText,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 
