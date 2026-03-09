@@ -115,6 +115,7 @@ app.post('/messages', requireAuth, (req, res) => {
   }
 
   const created = createMessage({ text, source });
+  console.log(`[api] message id=${created.id} source=${created.source}`);
   broadcast({ type: 'message', data: created });
   return res.status(201).json({ data: created });
 });
@@ -176,6 +177,7 @@ wss.on('connection', (ws) => {
     }
 
     const created = createMessage({ text, source });
+    console.log(`[ws] message id=${created.id} source=${created.source}`);
 
     // Envia para os outros clientes (evita eco no emissor).
     broadcast({ type: 'message', data: created }, { exclude: ws });
