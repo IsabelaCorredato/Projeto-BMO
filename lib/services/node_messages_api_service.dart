@@ -40,6 +40,54 @@ class NodeMessagesApiService {
     _token = token.trim();
   }
 
+  Future<NodeApiHealthProbe> probeHealth() async {
+    final baseUrl = _baseUrl;
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw StateError('Base URL da API não configurada');
+    }
+
+    final uri = Uri.parse('$baseUrl/health');
+    final request = http.Request('GET', uri)
+      ..followRedirects = false
+      ..maxRedirects = 0
+      ..headers.addAll(_headers());
+
+    final client = http.Client();
+    http.Response response;
+    try {
+      final streamed = await client.send(request);
+      response = await http.Response.fromStream(streamed);
+    } finally {
+      client.close();
+    }
+
+    final statusCode = response.statusCode;
+    final location = response.headers['location'];
+    final isAuthRedirect =
+        (statusCode == 301 ||
+            statusCode == 302 ||
+            statusCode == 307 ||
+            statusCode == 308) &&
+        (location?.contains('github.dev/pf-signin') ?? false);
+
+    String? publicWsUrl;
+    if (statusCode >= 200 && statusCode < 300) {
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        publicWsUrl = (data['publicWsUrl'] as String?)?.trim();
+      } catch (_) {
+        // /health pode não ser JSON em servidores externos.
+      }
+    }
+
+    return NodeApiHealthProbe(
+      statusCode: statusCode,
+      redirectLocation: location,
+      isAuthRedirect: isAuthRedirect,
+      publicWsUrl: publicWsUrl,
+    );
+  }
+
   Future<List<NodeApiMessage>> fetchMessages({int limit = 50}) async {
     final baseUrl = _baseUrl;
     if (baseUrl == null || baseUrl.isEmpty) {
@@ -95,4 +143,18 @@ class NodeMessagesApiService {
       if (_token.isNotEmpty) 'Authorization': 'Bearer $_token',
     };
   }
+}
+
+class NodeApiHealthProbe {
+  const NodeApiHealthProbe({
+    required this.statusCode,
+    required this.redirectLocation,
+    required this.isAuthRedirect,
+    required this.publicWsUrl,
+  });
+
+  final int statusCode;
+  final String? redirectLocation;
+  final bool isAuthRedirect;
+  final String? publicWsUrl;
 }

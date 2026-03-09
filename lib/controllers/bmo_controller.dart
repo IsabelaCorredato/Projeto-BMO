@@ -107,6 +107,26 @@ class BmoController extends ChangeNotifier {
 
     if (_apiBaseUrl.isNotEmpty) {
       _nodeApi.configure(baseUrl: _apiBaseUrl, token: _apiToken);
+      try {
+        final probe = await _nodeApi.probeHealth();
+        if (probe.isAuthRedirect) {
+          _errorText =
+              'Codespaces bloqueando acesso (porta privada). '
+              'No Codespaces, deixe a porta 8080 como Public e tente novamente.';
+          notifyListeners();
+          return;
+        }
+
+        final publicWsUrl = probe.publicWsUrl?.trim() ?? '';
+        if (publicWsUrl.isNotEmpty) {
+          _wsUrl = _normalizeWsUrl(
+            wsUrl: publicWsUrl,
+            fallbackApiBaseUrl: _apiBaseUrl,
+          );
+        }
+      } catch (_) {
+        // Mantém fluxo normal: a conexão WS ainda pode funcionar mesmo sem /health.
+      }
     }
 
     try {
@@ -118,9 +138,21 @@ class BmoController extends ChangeNotifier {
         );
       }
     } catch (error) {
-      _errorText = 'Falha ao conectar no Node: $error';
+      _errorText = _mapConnectionError(error);
       notifyListeners();
     }
+  }
+
+  String _mapConnectionError(Object error) {
+    final raw = error.toString();
+    if (_wsUrl.contains('.app.github.dev') &&
+        raw.contains('not upgraded to websocket')) {
+      return 'Falha no handshake WS. Em Codespaces isso normalmente significa '
+          'porta privada ou URL inválida. Defina a porta 8080 como Public '
+          'e use wss://<codespace>-8080.app.github.dev/ws';
+    }
+
+    return 'Falha ao conectar no Node: $raw';
   }
 
   _NormalizedNodeEndpoints _normalizeNodeEndpoints({
