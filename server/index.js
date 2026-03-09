@@ -8,6 +8,8 @@ const path = require('path');
 const PORT = Number(process.env.PORT || 8080);
 const API_TOKEN = (process.env.API_TOKEN || 'bmo-local-123').trim();
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'messages.json');
+const CODESPACE_NAME = (process.env.CODESPACE_NAME || '').trim();
+const FORWARDING_DOMAIN = (process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || '').trim();
 
 function ensureDataDir() {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
@@ -74,11 +76,23 @@ function requireAuth(req, res, next) {
 }
 
 app.get('/health', (req, res) => {
+  const publicHttpUrl =
+    CODESPACE_NAME && FORWARDING_DOMAIN
+      ? `https://${CODESPACE_NAME}-${PORT}.${FORWARDING_DOMAIN}`
+      : null;
+
+  const publicWsUrl =
+    CODESPACE_NAME && FORWARDING_DOMAIN
+      ? `wss://${CODESPACE_NAME}-${PORT}.${FORWARDING_DOMAIN}/ws`
+      : null;
+
   res.json({
     status: 'ok',
     wsPath: '/ws (ou /)',
     messages: messages.length,
     apiTokenConfigured: Boolean(API_TOKEN),
+    publicHttpUrl,
+    publicWsUrl,
   });
 });
 
@@ -126,7 +140,8 @@ function broadcast(payload, options = {}) {
 }
 
 server.on('upgrade', (request, socket, head) => {
-  if (request.url !== '/' && request.url !== '/ws') {
+  const pathname = new URL(request.url || '/', 'http://localhost').pathname;
+  if (pathname !== '/' && pathname !== '/ws') {
     socket.destroy();
     return;
   }
@@ -170,4 +185,9 @@ wss.on('connection', (ws) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`[bmo-node] listening on http://0.0.0.0:${PORT}`);
   console.log(`[bmo-node] ws endpoint: ws://<host>:${PORT}/ws`);
+  if (CODESPACE_NAME && FORWARDING_DOMAIN) {
+    const publicHost = `${CODESPACE_NAME}-${PORT}.${FORWARDING_DOMAIN}`;
+    console.log(`[bmo-node] codespaces http: https://${publicHost}`);
+    console.log(`[bmo-node] codespaces ws:   wss://${publicHost}/ws`);
+  }
 });

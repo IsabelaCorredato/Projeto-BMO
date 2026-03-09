@@ -34,8 +34,8 @@ class BmoController extends ChangeNotifier {
   String _statusText = 'Desconectado';
   String? _errorText;
 
-  String _wsUrl = 'ws://192.168.0.10:8080/ws';
-  String _apiBaseUrl = 'http://192.168.0.10:8080';
+  String _wsUrl = '';
+  String _apiBaseUrl = '';
   String _apiToken = 'bmo-local-123';
 
   Future<void> _pendingQueue = Future<void>.value();
@@ -89,6 +89,23 @@ class BmoController extends ChangeNotifier {
     _wsUrl = wsUrl.trim();
     _apiBaseUrl = apiBaseUrl.trim();
     _apiToken = apiToken.trim();
+
+    if (_wsUrl.isEmpty && _apiBaseUrl.isNotEmpty) {
+      try {
+        _wsUrl = _deriveWsUrlFromApi(_apiBaseUrl);
+      } catch (_) {
+        _errorText = 'Node API base URL inválida.';
+        notifyListeners();
+        return;
+      }
+    }
+
+    if (_wsUrl.isEmpty) {
+      _errorText = 'Informe Node WS URL ou Node API base URL.';
+      notifyListeners();
+      return;
+    }
+
     notifyListeners();
 
     if (_apiBaseUrl.isNotEmpty) {
@@ -107,6 +124,17 @@ class BmoController extends ChangeNotifier {
       _errorText = 'Falha ao conectar no Node: $error';
       notifyListeners();
     }
+  }
+
+  String _deriveWsUrlFromApi(String apiBaseUrl) {
+    final uri = Uri.parse(apiBaseUrl);
+    final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
+    return Uri(
+      scheme: wsScheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: '/ws',
+    ).toString();
   }
 
   Future<void> disconnectFromNode() async {

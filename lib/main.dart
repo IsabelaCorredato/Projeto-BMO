@@ -9,6 +9,8 @@ import 'services/node_messages_api_service.dart';
 
 const _geminiApiKey = 'AIzaSyDZsTWwKJxGr_ULgj07kmGIuFFFZ5wsSzc';
 const _defaultApiToken = 'bmo-local-123';
+const _defaultNodeApiBaseUrl = String.fromEnvironment('NODE_API_BASE_URL');
+const _defaultNodeWsUrl = String.fromEnvironment('NODE_WS_URL');
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,10 +48,10 @@ class BmoHomePage extends StatefulWidget {
 class _BmoHomePageState extends State<BmoHomePage> {
   late final BmoController _controller;
   final TextEditingController _wsController = TextEditingController(
-    text: 'ws://192.168.0.10:8080/ws',
+    text: _defaultNodeWsUrl,
   );
   final TextEditingController _apiController = TextEditingController(
-    text: 'http://192.168.0.10:8080',
+    text: _defaultNodeApiBaseUrl,
   );
   final TextEditingController _tokenController = TextEditingController(
     text: _defaultApiToken,
@@ -232,7 +234,7 @@ class _BmoHomePageState extends State<BmoHomePage> {
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Node WS URL',
-                  hintText: 'ws://192.168.0.10:8080/ws',
+                  hintText: 'Opcional se API URL estiver preenchida',
                 ),
               ),
               const SizedBox(height: 8),
@@ -241,7 +243,7 @@ class _BmoHomePageState extends State<BmoHomePage> {
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Node API base URL',
-                  hintText: 'http://192.168.0.10:8080',
+                  hintText: 'https://<codespace>-8080.app.github.dev',
                 ),
               ),
               const SizedBox(height: 8),
