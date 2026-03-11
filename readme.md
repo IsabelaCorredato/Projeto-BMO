@@ -73,3 +73,23 @@ curl -X POST "https://<codespace>-8080.app.github.dev/messages" \
   -H "Content-Type: application/json" \
   -d '{"text":"oi bmo","source":"api"}'
 ```
+
+## ESP32 (Wokwi Simulator)
+
+For testing the ESP32 integration without physical hardware, the repository includes files for running an ESP32 simulation in Wokwi.
+
+Arquivos adicionados:
+
+- `main.cpp`  
+  Código do ESP32 responsável por conectar ao WiFi do Wokwi, estabelecer uma conexão WebSocket e enviar mensagens para o servidor.
+
+- `diagram.json`  
+  Arquivo de configuração do simulador Wokwi que define o hardware virtual do ESP32.
+
+- `bridge.js`  
+  Script Node.js utilizado como bridge WebSocket local.  
+  Ele permite que o ESP32 do simulador se conecte a um servidor remoto `wss://` através de uma conexão `ws://` local.
+
+Fluxo de conexão utilizado no simulador:
+
+ESP32 (Wokwi) → bridge.js (ws local) → servidor remoto (wss)
