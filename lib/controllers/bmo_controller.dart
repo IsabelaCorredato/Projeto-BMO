@@ -109,20 +109,12 @@ class BmoController extends ChangeNotifier {
       _nodeApi.configure(baseUrl: _apiBaseUrl, token: _apiToken);
       try {
         final probe = await _nodeApi.probeHealth();
-        if (probe.isAuthRedirect) {
+        if (probe.isAuthRedirect && _apiBaseUrl.contains('.app.github.dev')) {
           _errorText =
               'Codespaces bloqueando acesso (porta privada). '
               'No Codespaces, deixe a porta 8080 como Public e tente novamente.';
           notifyListeners();
           return;
-        }
-
-        final publicWsUrl = probe.publicWsUrl?.trim() ?? '';
-        if (publicWsUrl.isNotEmpty) {
-          _wsUrl = _normalizeWsUrl(
-            wsUrl: publicWsUrl,
-            fallbackApiBaseUrl: _apiBaseUrl,
-          );
         }
       } catch (_) {
         // Mantém fluxo normal: a conexão WS ainda pode funcionar mesmo sem /health.
@@ -145,11 +137,20 @@ class BmoController extends ChangeNotifier {
 
   String _mapConnectionError(Object error) {
     final raw = error.toString();
-    if (_wsUrl.contains('.app.github.dev') &&
-        raw.contains('not upgraded to websocket')) {
-      return 'Falha no handshake WS. Em Codespaces isso normalmente significa '
-          'porta privada ou URL inválida. Defina a porta 8080 como Public '
-          'e use wss://<codespace>-8080.app.github.dev/ws';
+    if (raw.contains('not upgraded to websocket')) {
+      if (_wsUrl.contains('ngrok')) {
+        return 'Falha no handshake WS em $_wsUrl. Verifique se o ngrok está '
+            'rodando e se a URL do túnel é a atual.';
+      }
+
+      if (_wsUrl.contains('.app.github.dev')) {
+        return 'Falha no handshake WS. Em Codespaces isso normalmente significa '
+            'porta privada ou URL inválida. Defina a porta 8080 como Public '
+            'e use wss://<codespace>-8080.app.github.dev/ws';
+      }
+
+      return 'Falha no handshake WS em $_wsUrl. Verifique URL, TLS (wss://) '
+          'e disponibilidade do servidor.';
     }
 
     return 'Falha ao conectar no Node: $raw';

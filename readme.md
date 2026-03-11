@@ -13,7 +13,11 @@ npm start
 Variáveis opcionais:
 - `PORT` (default `8080`)
 - `API_TOKEN` (default `bmo-local-123`)
-- `DATA_FILE` (default `server/data/messages.json`)
+- `MAX_IN_MEMORY_MESSAGES` (default `300`)
+
+Observação:
+- O backend Node **não salva mensagens em arquivo/disco**.
+- O histórico/contexto persistente fica no SQLite do app Flutter.
 
 Endpoints:
 - `GET /health`

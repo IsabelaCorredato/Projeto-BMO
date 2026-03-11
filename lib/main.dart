@@ -7,10 +7,16 @@ import 'services/esp32_websocket_service.dart';
 import 'services/gemini_service.dart';
 import 'services/node_messages_api_service.dart';
 
-const _geminiApiKey = 'AIzaSyDZsTWwKJxGr_ULgj07kmGIuFFFZ5wsSzc';
+const _geminiApiKey = 'AIzaSyBn-OQgFAe9Fp2HGSOmiT_AoWHr6noeOy8';
 const _defaultApiToken = 'bmo-local-123';
-const _defaultNodeApiBaseUrl = String.fromEnvironment('NODE_API_BASE_URL');
-const _defaultNodeWsUrl = String.fromEnvironment('NODE_WS_URL');
+const _defaultNodeApiBaseUrl = String.fromEnvironment(
+  'NODE_API_BASE_URL',
+  defaultValue: 'https://nonprivileged-jamie-bottomless.ngrok-free.dev',
+);
+const _defaultNodeWsUrl = String.fromEnvironment(
+  'NODE_WS_URL',
+  defaultValue: 'wss://nonprivileged-jamie-bottomless.ngrok-free.dev/ws',
+);
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -138,6 +144,7 @@ class _BmoHomePageState extends State<BmoHomePage> {
             headerItems + _controller.messages.length + thinkingItems;
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: const Text('BMO Bridge'),
             actions: [
@@ -156,6 +163,8 @@ class _BmoHomePageState extends State<BmoHomePage> {
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.only(bottom: 12),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   itemCount: totalItems,
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -297,27 +306,30 @@ class _BmoHomePageState extends State<BmoHomePage> {
   }
 
   Widget _buildComposer() {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _handleSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Digite uma mensagem para o BMO / Node',
-                  border: OutlineInputBorder(),
-                ),
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        12,
+        8,
+        12,
+        bottomPadding > 0 ? bottomPadding : 12,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _handleSend(),
+              decoration: const InputDecoration(
+                hintText: 'Digite uma mensagem para o BMO / Node',
+                border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(width: 8),
-            FilledButton(onPressed: _handleSend, child: const Text('Enviar')),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(onPressed: _handleSend, child: const Text('Enviar')),
+        ],
       ),
     );
   }

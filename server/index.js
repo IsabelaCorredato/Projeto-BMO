@@ -2,42 +2,15 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
 
 const PORT = Number(process.env.PORT || 8080);
 const API_TOKEN = (process.env.API_TOKEN || 'bmo-local-123').trim();
-const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'messages.json');
+const MAX_IN_MEMORY_MESSAGES = Number(process.env.MAX_IN_MEMORY_MESSAGES || 300);
 const CODESPACE_NAME = (process.env.CODESPACE_NAME || '').trim();
 const FORWARDING_DOMAIN = (process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || '').trim();
 
-function ensureDataDir() {
-  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-}
-
-function loadMessages() {
-  ensureDataDir();
-  if (!fs.existsSync(DATA_FILE)) {
-    return [];
-  }
-
-  try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error('[storage] Failed to read messages.json:', error);
-    return [];
-  }
-}
-
-function saveMessages(messages) {
-  ensureDataDir();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(messages, null, 2));
-}
-
-let messages = loadMessages();
-let nextId = messages.reduce((max, msg) => Math.max(max, Number(msg.id) || 0), 0) + 1;
+const messages = [];
+let nextId = 1;
 
 function createMessage({ text, source }) {
   const message = {
@@ -48,7 +21,12 @@ function createMessage({ text, source }) {
   };
 
   messages.push(message);
-  saveMessages(messages);
+  const maxItems = Number.isFinite(MAX_IN_MEMORY_MESSAGES)
+    ? Math.max(1, Math.trunc(MAX_IN_MEMORY_MESSAGES))
+    : 300;
+  if (messages.length > maxItems) {
+    messages.shift();
+  }
   return message;
 }
 

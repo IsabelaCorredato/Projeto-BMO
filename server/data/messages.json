@@ -64,5 +64,35 @@
     "source": "app",
     "text": "probe-via-ws",
     "createdAt": "2026-03-09T22:54:30.654Z"
+  },
+  {
+    "id": 12,
+    "source": "esp32",
+    "text": "Hello PieSocket!",
+    "createdAt": "2026-03-10T22:53:03.760Z"
+  },
+  {
+    "id": 13,
+    "source": "esp32",
+    "text": "Hello PieSocket!",
+    "createdAt": "2026-03-10T22:53:05.904Z"
+  },
+  {
+    "id": 14,
+    "source": "esp32",
+    "text": "syhdaib",
+    "createdAt": "2026-03-10T22:53:11.868Z"
+  },
+  {
+    "id": 15,
+    "source": "esp32",
+    "text": "syhdaib",
+    "createdAt": "2026-03-10T22:55:14.622Z"
+  },
+  {
+    "id": 16,
+    "source": "esp32",
+    "text": "syhdaib",
+    "createdAt": "2026-03-10T23:45:17.803Z"
   }
 ]
