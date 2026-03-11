@@ -1,0 +1,16 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[2m11:45:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+11:45:58 PM [express] serving on port 5000
+Error fetching messages: Error: Failed to fetch messages: Not Found
+    at ApiStorage.getMessages [90m(/home/runner/workspace/[39mserver/storage.ts:17:13[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async <anonymous> [90m(/home/runner/workspace/[39mserver/routes.ts:12:24[90m)[39m
+11:46:03 PM [express] GET /api/messages 500 in 173ms :: {"message":"Internal server error while fetching messages"}
+Error fetching messages: Error: Failed to fetch messages: Not Found
+    at ApiStorage.getMessages [90m(/home/runner/workspace/[39mserver/storage.ts:17:13[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async <anonymous> [90m(/home/runner/workspace/[39mserver/routes.ts:12:24[90m)[39m
+11:46:33 PM [express] GET /api/messages 500 in 108ms :: {"message":"Internal server error while fetching messages"}

@@ -1,0 +1,16 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0K11:44:54 PM [express] serving on port 5000
+Error fetching messages: Error: Failed to fetch messages: Not Found
+    at ApiStorage.getMessages [90m(/home/runner/workspace/[39mserver/storage.ts:16:13[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async <anonymous> [90m(/home/runner/workspace/[39mserver/routes.ts:12:24[90m)[39m
+11:45:00 PM [express] GET /api/messages 500 in 172ms :: {"message":"Internal server error while fetching messages"}
+Error fetching messages: Error: Failed to fetch messages: Not Found
+    at ApiStorage.getMessages [90m(/home/runner/workspace/[39mserver/storage.ts:16:13[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at async <anonymous> [90m(/home/runner/workspace/[39mserver/routes.ts:12:24[90m)[39m
+11:45:04 PM [express] GET /api/messages 500 in 111ms :: {"message":"Internal server error while fetching messages"}
+11:45:34 PM [express] GET /api/messages 200 in 378ms :: {"count":16,"data":[{"id":1,"source":"app","text":"hello-from-ws","createdAt":"2026-03-09T21:56:47.475Z"},{"id":2,"source":"probe","text":"ping local","createdAt":"2026-03-09T22:38:11.997Z"},{"id":3,"source":"probe","text":"ws local ok","createdAt":"2026-03-09T22:38:12.276Z"},{"id":4,"source":"probe-a","text":"broadcast-check","createdAt":"2026-03-09T22:38:20.578Z"},{"id":5,"source":"probe","text":"ping-ngrok","createdAt":"2026-03-09T22:48:44.660Z"},{"id":6,"source":"probe","text":"ws-ngrok-ok","createdAt":"2026-03-09T22:48:44.912Z"},{"id":7,"source":"probe-a","text":"ngrok-broadcast","createdAt":"2026-03-09T22:48:54.255Z"},{"id":8,"source":"app","text":"tesr","createdAt":"2026-03-09T22:52:31.650Z"},{"id":9,"source":"app","text":"teste","createdAt":"2026-03-09T22:52:40.068Z"},{"id":10,"source":"app","text":"probe-via-api","createdAt":"2026-03-09T22:54:30.478Z"},{"id":11,"source":"app","text":"probe-via-ws","createdAt":"2026-03-09T22:54:30.654Z"},{"id":12,"source":"esp32","text":"Hello PieSocket!","createdAt":"2026-03-10T22:53:03.760Z"},{"id":13,"source":"esp32","text":"Hello PieSocket!","createdAt":"2026-03-10T22:53:05.904Z"},{"id":14,"source":"esp32","text":"syhdaib","createdAt":"2026-03-10T22:53:11.868Z"},{"id":15,"source":"esp32","text":"syhdaib","createdAt":"2026-03-10T22:55:14.622Z"},{"id":16,"source":"esp32","text":"syhdaib","createdAt":"2026-03-10T23:45:17.803Z"}]}
