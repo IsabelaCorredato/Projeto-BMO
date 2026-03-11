@@ -3,24 +3,20 @@
   "author": "Uri Shaked",
   "editor": "wokwi",
   "parts": [
-    {
-      "type": "board-esp32-devkit-c-v4",
-      "id": "esp",
-      "top": 9.6,
-      "left": 14.44,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-websocket",
-      "id": "websocket",
-      "top": 100,
-      "left": 100,
-      "attrs": {}
-    }
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 163.2, "left": 148.84, "attrs": {} },
+    { "type": "wokwi-membrane-keypad", "id": "keypad", "top": -280.4, "left": 303.2, "attrs": {} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX", "$serialMonitor:TX", "", [] ]
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "keypad:R1", "esp:23", "green", [ "v0" ] ],
+    [ "keypad:R2", "esp:22", "green", [ "v0" ] ],
+    [ "keypad:R3", "esp:21", "green", [ "v0" ] ],
+    [ "keypad:R4", "esp:19", "green", [ "v0" ] ],
+    [ "keypad:C1", "esp:18", "blue", [ "v0" ] ],
+    [ "keypad:C2", "esp:5", "blue", [ "v0" ] ],
+    [ "keypad:C3", "esp:17", "blue", [ "v0" ] ],
+    [ "keypad:C4", "esp:16", "blue", [ "v0" ] ]
   ],
   "dependencies": {}
 }
